@@ -51,4 +51,4 @@ python test.py
 ```
 result will store in ./result/submission.csv </br>
 
-# Notice ensemble prediction have not release yet.
+# Current ensemble XGB and LGBM, But feature engineering not enough...
