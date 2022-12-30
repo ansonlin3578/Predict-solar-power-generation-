@@ -2,8 +2,11 @@ import numpy as np
 import os
 
 import xgboost as xgb
+import lightgbm as lgb
+
 from sklearn.model_selection import KFold, cross_val_score
 from sklearn.metrics import mean_squared_error
+import joblib
 
 def rmsle_cv(X, y, model, n_folds):
     kf = KFold(n_folds, shuffle=True, random_state=42).get_n_splits(X.values)
@@ -24,6 +27,14 @@ class Model:
                 subsample=0.5213, random_state =7, nthread = -1
             )
             self.models.append(model)
+        
+        elif model_type == "LGBM":
+            model = lgb.LGBMRegressor(
+                objective='regression', num_leaves=5, learning_rate=0.05,
+                n_estimators=720, max_bin=55, feature_fraction_seed=9, bagging_seed=9
+            )
+            self.models.append(model)
+
         return self
     
     def Kfold(self, X, y, n_folds):
@@ -38,7 +49,10 @@ class Model:
     def save_model_weights(self, model, savedir, savename):
         os.makedirs(savedir, exist_ok=True)
         savepath = os.path.join(savedir, f"{savename}.json")
-        model.save_model(savepath)
+        if savename[0] != 'X':
+            joblib.dump(model, savepath)
+        else:
+            model.save_model(savepath)
         print(f"Model weights save in {savepath}")
         
 def rmsle(y, y_pred):

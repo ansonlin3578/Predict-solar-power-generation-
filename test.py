@@ -11,6 +11,7 @@ from configs import DataConfigs, TestConfigs
 from preprocessing import fill_null
 from Analysis.Exploratory_Data_Analysis import Corr, module_performance_analysis
 from models import Model
+import joblib
 
 import csv
 import os
@@ -48,18 +49,27 @@ model_list = model_builder.models
 model_xgb = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468, learning_rate=0.05, max_depth=3, min_child_weight=1.7817, n_estimators=2200,
                                  reg_alpha=0.4640, reg_lambda=0.8571, subsample=0.5213, random_state=7, nthread=-1)
 
+final_pred = []
+for i, (model_art, model_weight) in enumerate(zip(model_builder.models, TestConfigs.model_weights)):
+    if model_weight.split('/')[-1].split('.')[0] == 'LGBMRegressor':
+        model_art = joblib.load(model_weight)
+    else:
+        model_art.load_model(model_weight)
+    print(f"Load {model_weight} weights !")
+    pred = model_art.predict(test_data)
+    final_pred.append(pred)
 
-
-for (model_art, model_weight) in zip(model_builder.models, TestConfigs.model_weights):
-    model_art.load_model(model_weight)
-    model_xgb.load_model(model_weight)
-    print(f"Load {TestConfigs.model_weights} weights !")
-    xgb_pred = model_art.predict(test_data)
-    
-    os.makedirs(TestConfigs.prediction_dir, exist_ok=True)
-    with open(os.path.join(TestConfigs.prediction_dir, 'submission.csv'), 'w') as f:
-        w = csv.writer(f)
-        w.writerow(["ID", "Generation"])
-        for i, g in enumerate(xgb_pred):
-            w.writerow([i + 1, int(g)])
-    print(f"Save prediction result in {os.path.join(TestConfigs.prediction_dir, 'submission.csv')}")
+# ensemble
+final_pred = np.array(final_pred)
+tmp = np.zeros(final_pred.shape[1])
+for pred in final_pred:
+    tmp += pred
+tmp /= final_pred.shape[0]
+final_pred = tmp
+os.makedirs(TestConfigs.prediction_dir, exist_ok=True)
+with open(os.path.join(TestConfigs.prediction_dir, 'submission.csv'), 'w') as f:
+    w = csv.writer(f)
+    w.writerow(["ID", "Generation"])
+    for i, g in enumerate(final_pred):
+        w.writerow([i + 1, int(g)])
+print(f"Save prediction result in {os.path.join(TestConfigs.prediction_dir, 'submission.csv')}")
