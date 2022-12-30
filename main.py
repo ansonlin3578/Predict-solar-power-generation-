@@ -6,31 +6,13 @@ import xgboost as xgb
 from sklearn.model_selection import KFold, cross_val_score
 from sklearn.metrics import mean_squared_error
 
-class load_data(object):
-    def load_train(path, dataset):
-        df = pd.read_csv(path)
-        dataset["train"]["data"] = df
-        dataset["train"]["label"] = df["Generation"]
-    def load_test(path, dataset):
-        df = pd.read_csv(path)
-        dataset["test"]["data"] = df
-        dataset["test"]["label"] = df["Generation"]
+from dataset.data_utils import load_data
+from configs import DataConfigs
+from preprocessing import fill_null
 
-dataset = {
-            "train" : {
-                        "data" : [],
-                        "label" : []
-                        },
-            "test" : {
-                        "data" : [],
-                        "label" : []
-                        }
-            }
-
+dataset = DataConfigs.dataset
 load_data.load_train(r"./dataset/train.csv", dataset)
 load_data.load_test(r"./dataset/test.csv", dataset)
-# print(dataset["train"]["data"])
-# print(dataset["train"]["label"])
 
 df_original = dataset["train"]["data"]
 df_with_module = df_original[["Generation", "Module", "Irradiance", "Capacity", "Irradiance_m", "Temp"]]
@@ -45,45 +27,7 @@ for index in to_filter.index:
 dataset["train"]["data"] = df_wo_module
 
 ################################# fill the nan value ####################################
-
-fill_temp = df_original.iloc[:, 10].values
-nan_check = np.isnan(fill_temp)     
-for i in range(len(fill_temp)):     #fill temp value of training data(前6天 & 最近的後6天 取averagee)
-    stack = []
-    if nan_check[i]:
-        left_sum = np.sum(fill_temp[i-6 : i])   
-        j = i+1
-        while len(stack) < 6:
-            if not nan_check[j]:
-                stack.append(fill_temp[j])
-            j += 1
-        right_sum = sum(stack)
-        avg = (left_sum + right_sum)/12
-        fill_temp[i] = avg
-
-df_with_module["Temp"] = fill_temp
-print("df_with_module:")        
-for column in df_with_module:   #確認每個column的nan value數量
-    print("nan value in {} : ".format(column) , df_with_module[column].isna().sum())
-    if column == "Irradiance_m":
-        print("'0' nan value in {} : ".format(column) , (df_with_module[column] == 0).sum())
-
-fill_irr = df_original.iloc[:, 4].values    #fill irradiance of training data
-nan_check = np.isnan(fill_irr)              #依照temp來填irradiance (已經先確認過module的發電效率高低，才開使填補nan)
-for i in range(len(fill_irr)):    #irr[i] = irr[i-3] + 3*irr[i-3]*((temp[i+3] = temp[i-3]) / temp[i-3])
-    if nan_check[i]:
-        print(fill_irr[i])
-        if (i-3 >= 0) and (i+3 < len(fill_irr)):
-            ans = fill_irr[i-3] + 3 * fill_irr[i-3] * ((fill_temp[i+3] - fill_temp[i-3]) / fill_temp[i-3])
-            if ans < 0:
-                ans = min(fill_irr)
-            fill_irr[i] = ans
-df_with_module["Irradiance"] = fill_irr
-print("df_with_module:")
-for column in df_with_module:   #確認每個column的nan value數量
-    print("nan value in {} : ".format(column) , df_with_module[column].isna().sum())
-    if column == "Irradiance_m":
-        print("'0' nan value in {} : ".format(column) , (df_with_module[column] == 0).sum())
+df_with_module = fill_null(df_original=df_original, df_with_module=df_with_module)
 
 ################################# training data preprcessing ####################################
 df_with_module = df_with_module.sort_values(by=["Generation"])
@@ -231,6 +175,8 @@ def rmsle(y, y_pred):
     return np.sqrt(mean_squared_error(y, y_pred))
 
 model_xgb.fit(train_data, train_label)
+# save in JSON format
+model_xgb.save_model("XGB_model.json")
 xgb_train_pred = model_xgb.predict(train_data)
 xgb_pred = model_xgb.predict(test_data)
 print(rmsle(train_label, xgb_train_pred))
