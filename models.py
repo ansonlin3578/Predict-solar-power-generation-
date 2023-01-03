@@ -3,7 +3,7 @@ import os
 
 import xgboost as xgb
 import lightgbm as lgb
-
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import KFold, cross_val_score
 from sklearn.metrics import mean_squared_error
 import joblib
@@ -27,7 +27,7 @@ class Model:
                 subsample=0.5213, random_state =7, nthread = -1
             )
             self.models.append(model)
-        
+
         elif model_type == "LGBM":
             model = lgb.LGBMRegressor(
                 objective='regression', num_leaves=5, learning_rate=0.05,
@@ -35,8 +35,15 @@ class Model:
             )
             self.models.append(model)
 
+        elif model_type == "histGBM":
+            model = HistGradientBoostingRegressor(
+               l2_regularization=1.32e-10, early_stopping=True, learning_rate=0.05,
+               max_iter=10000, max_depth=3, max_bins=55, min_samples_leaf=20, max_leaf_nodes=68
+            )
+            self.models.append(model)
+
         return self
-    
+
     def Kfold(self, X, y, n_folds):
         model_list = {}
         for model in self.models:
@@ -54,6 +61,6 @@ class Model:
         else:
             model.save_model(savepath)
         print(f"Model weights save in {savepath}")
-        
+
 def rmsle(y, y_pred):
     return np.sqrt(mean_squared_error(y, y_pred))

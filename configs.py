@@ -10,9 +10,11 @@ class DataConfigs:
                         }
             }
 class TrainConfigs:
-    model_type = ['XGB', 'LGBM']
+    model_type = ['XGB', 'LGBM', 'histGBM']
 
 class TestConfigs:
-    model_type = ['XGB', 'LGBM']
-    model_weights = ['./checkpoints/XGBRegressor.json', './checkpoints/LGBMRegressor.json']
+    model_type = ['XGB', 'LGBM', 'histGBM']
+    model_weights = ['./checkpoints/XGBRegressor.json',
+                     './checkpoints/LGBMRegressor.json',
+                     './checkpoints/HistGradientBoostingRegressor.json']
     prediction_dir = './result'

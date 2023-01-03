@@ -53,6 +53,8 @@ final_pred = []
 for i, (model_art, model_weight) in enumerate(zip(model_builder.models, TestConfigs.model_weights)):
     if model_weight.split('/')[-1].split('.')[0] == 'LGBMRegressor':
         model_art = joblib.load(model_weight)
+    elif model_weight.split('/')[-1].split('.')[0] == 'HistGradientBoostingRegressor':
+        model_art = joblib.load(model_weight)
     else:
         model_art.load_model(model_weight)
     print(f"Load {model_weight} weights !")
