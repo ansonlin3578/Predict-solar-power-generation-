@@ -49,4 +49,9 @@ def addlag(df, lag_nums):
         lag = df['Generation'].shift(i+1)
         lags.append(lag)
     return lags
+
+def merge_lagdata(df, lagdata:list):
+    lagdata = pd.DataFrame(lagdata, columns=["lagdata_d1", "lagdata_d2", "lagdata_d3", "lagdata_d4"])
+    df_merge = pd.concat(objs=(df, lagdata) , axis=1)
+    return df_merge
         
