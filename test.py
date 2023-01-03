@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error
 
 from dataset.data_utils import load_data
 from configs import DataConfigs, TestConfigs
-from preprocessing import fill_null
+from preprocessing import fill_null, addlag, merge_lagdata
 from Analysis.Exploratory_Data_Analysis import Corr, module_performance_analysis
 from models import Model
 import joblib
@@ -38,6 +38,12 @@ only_module = pd.concat((only_module, pd.get_dummies(only_module.Module)), 1)
 only_module = only_module.drop(["Module"], axis=1)
 only_module["MM60-6RT-300"] = 1.5 * only_module["MM60-6RT-300"] #onehot encodeing後，將module("MM60-6RT-300")的scale * 1.5
 onehot_df = pd.concat(objs=(df_with_module, only_module), axis=1)
+
+## add lag
+lags_feats = addlag(df_original, 4, featurename='Irradiance')
+onehot_df = merge_lagdata(onehot_df, lags_feats)
+
+onehot_df = onehot_df.drop([0, 1, 2, 3])
 test_data = onehot_df.drop(columns=["Generation", "Module"])
 
 ######################################## Create model  #################################################

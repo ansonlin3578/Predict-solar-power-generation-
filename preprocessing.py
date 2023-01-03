@@ -43,15 +43,17 @@ def fill_null(df_original, df_with_module):
             print("'0' nan value in {} : ".format(column) , (df_with_module[column] == 0).sum())
     return df_with_module
 
-def addlag(df, lag_nums):
+def addlag(df, lag_nums, featurename):
     lags = []
     for i in range(lag_nums):
-        lag = df['Generation'].shift(i+1)
+        lag = df[featurename].shift(i+1)
+        lag = lag.to_frame()
+        lag = lag.rename(columns={featurename: 'lag' + '_' + str(i+1)})
         lags.append(lag)
     return lags
 
 def merge_lagdata(df, lagdata:list):
-    lagdata = pd.DataFrame(lagdata, columns=["lagdata_d1", "lagdata_d2", "lagdata_d3", "lagdata_d4"])
-    df_merge = pd.concat(objs=(df, lagdata) , axis=1)
-    return df_merge
+    for lag in lagdata:
+        df = pd.concat([df, lag] , axis=1)
+    return df
         
