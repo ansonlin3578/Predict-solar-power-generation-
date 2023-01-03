@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import statsmodels.api as sm
 
 def Corr(df_wo_module):
     corr_matrix = df_wo_module.corr()
@@ -94,3 +95,14 @@ def module_performance_analysis(df_with_module, savedir):
     plt.savefig(os.path.join(savedir, "avg_gen(persent)-irr_interval"))
     plt.close()
     return df_with_module
+
+def Lag_data_EDA(df, featurename):
+    input = df[featurename]
+    fig = plt.figure(figsize=(12, 8))
+    ax1 = fig.add_subplot(211)
+    fig = sm.graphics.tsa.plot_acf(input.values.squeeze(), lags=200, ax=ax1)
+    ax2 = fig.add_subplot(212)
+    # fig.title('par')
+    fig = sm.graphics.tsa.plot_acf(input, lags=200, ax=ax2)
+    plt.savefig('./Analysis/train_data/auto_corr.png')
+    return df

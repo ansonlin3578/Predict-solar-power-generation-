@@ -12,7 +12,7 @@ import joblib
 from dataset.data_utils import load_data
 from configs import DataConfigs, TrainConfigs
 from Analysis.Exploratory_Data_Analysis import Corr, module_performance_analysis, Lag_data_EDA
-from preprocessing import fill_null, addlag
+from preprocessing import fill_null, addlag, merge_lagdata
 from models import Model, rmsle
 
 ############################# Read data #################################
@@ -51,14 +51,17 @@ onehot_df = pd.concat(objs=(df_with_module, only_module), axis=1)
 
 # Lag data
 Lag_data_EDA(onehot_df, 'Irradiance')
-lags_feats = addlag(df_original)
+lags_feats = addlag(df_original, 4, featurename='Irradiance')
+onehot_df = merge_lagdata(onehot_df, lags_feats)
 # for column in onehot_df:
 #     print("nan value in {} : ".format(column) , onehot_df[column].isna().sum())
 ################################################################################
 
 ################################ Create model  #################################
+onehot_df = onehot_df.dropna()
 train_label = onehot_df.Generation.values   #整理成最後要丟進去model的資料型態
 train_data = onehot_df.drop(columns=["Generation", "Module", "grade"])
+
 n_folds = 5
 model_builder = Model()
 for model in TrainConfigs.model_type:

@@ -3,6 +3,7 @@ import os
 
 import xgboost as xgb
 import lightgbm as lgb
+from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import KFold, cross_val_score
 from sklearn.metrics import mean_squared_error
