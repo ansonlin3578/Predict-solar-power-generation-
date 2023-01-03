@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import datetime
 
 def fill_null(df_original, df_with_module):
     fill_temp = df_original.iloc[:, 10].values
@@ -26,7 +27,7 @@ def fill_null(df_original, df_with_module):
 
     fill_irr = df_original.iloc[:, 4].values    #fill irradiance of training data
     nan_check = np.isnan(fill_irr)              #依照temp來填irradiance (已經先確認過module的發電效率高低，才開使填補nan)
-    for i in range(len(fill_irr)):    #irr[i] = irr[i-3] + 3*irr[i-3]*((temp[i+3] = temp[i-3]) / temp[i-3])
+    for i in range(len(fill_irr)):    #date[i] = date[i-3] + 3*date[i-3]*((temp[i+3] = temp[i-3]) / temp[i-3])
         if nan_check[i]:
             print(fill_irr[i])
             if (i-3 >= 0) and (i+3 < len(fill_irr)):
@@ -41,3 +42,11 @@ def fill_null(df_original, df_with_module):
         if column == "Irradiance_m":
             print("'0' nan value in {} : ".format(column) , (df_with_module[column] == 0).sum())
     return df_with_module
+
+def addlag(df, lag_nums):
+    lags = []
+    for i in range(lag_nums):
+        lag = df['Generation'].shift(i+1)
+        lags.append(lag)
+    return lags
+        
