@@ -52,3 +52,5 @@ python test.py
 result will store in ./result/submission.csv </br>
 
 # Current ensemble XGB and LGBM, But feature engineering not enough...
+TODO:
+hisGBM + lagdata
