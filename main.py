@@ -11,8 +11,8 @@ import joblib
 
 from dataset.data_utils import load_data
 from configs import DataConfigs, TrainConfigs
-from Analysis.Exploratory_Data_Analysis import Corr, module_performance_analysis
-from preprocessing import fill_null
+from Analysis.Exploratory_Data_Analysis import Corr, module_performance_analysis, Lag_data_EDA
+from preprocessing import fill_null, addlag
 from models import Model, rmsle
 
 ############################# Read data #################################
@@ -47,8 +47,11 @@ only_module = df_with_module[["Module"]]
 only_module = pd.concat((only_module, pd.get_dummies(only_module.Module)), 1)
 only_module = only_module.drop(["Module"], axis=1)
 only_module["MM60-6RT-300"] = 1.5 * only_module["MM60-6RT-300"] #onehot encodeing後，將module("MM60-6RT-300")的scale * 1.5
-
 onehot_df = pd.concat(objs=(df_with_module, only_module), axis=1)
+
+# Lag data
+Lag_data_EDA(onehot_df, 'Irradiance')
+lags_feats = addlag(df_original)
 # for column in onehot_df:
 #     print("nan value in {} : ".format(column) , onehot_df[column].isna().sum())
 ################################################################################
