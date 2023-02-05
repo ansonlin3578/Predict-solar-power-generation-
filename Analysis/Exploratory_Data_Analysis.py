@@ -105,4 +105,5 @@ def Lag_data_EDA(df, featurename):
     # fig.title('par')
     fig = sm.graphics.tsa.plot_acf(input, lags=200, ax=ax2)
     plt.savefig('./Analysis/train_data/auto_corr.png')
+    plt.close()
     return df

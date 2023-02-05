@@ -14,6 +14,7 @@ from configs import DataConfigs, TrainConfigs
 from Analysis.Exploratory_Data_Analysis import Corr, module_performance_analysis, Lag_data_EDA
 from preprocessing import fill_null, addlag, merge_lagdata
 from models import Model, rmsle
+from eval import plot_pred_gt
 
 ############################# Read data #################################
 dataset = DataConfigs.dataset
@@ -78,5 +79,6 @@ for model_name in model_list:
     model_builder.save_model_weights(model, './checkpoints', model_name)
     xgb_train_pred = model.predict(train_data)
     print(f'Training Loss: {rmsle(train_label, xgb_train_pred)}')
+    plot_pred_gt(train_label, xgb_train_pred, model_name)
 ################################################################################
 
